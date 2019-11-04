@@ -358,7 +358,7 @@
             methods: {
                 deletarLivro(id) {
                     if (confirm("Tem certeza?"))
-                        axios.delete('http://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
+                        axios.delete('https://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
                             data: { id }
                         })
                         .then(function(r) {
@@ -398,7 +398,7 @@
                         alert("O título está vazio!")
                     }
                     else {
-                        axios.post('http://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
+                        axios.post('https://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
                             titulo: this.livro.titulo
                         })
                         .then(function(r) {
@@ -427,7 +427,7 @@
             methods: {
                 editarLivro() {
                     if (confirm("Tem certeza?"))
-                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
+                        axios.put('https://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
                             id: this.$root.$data.livro.id, 
                             titulo: this.livro.titulo
                         })
@@ -448,7 +448,7 @@
             methods: {
                 deletarCliente(id) {
                     if (confirm("Tem certeza?"))
-                        axios.delete('http://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
+                        axios.delete('https://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
                             data: { id }
                         })
                         .then(function(r) {
@@ -487,7 +487,7 @@
                         alert("O nome está vazio!")
                     }
                     else {
-                        axios.post('http://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
+                        axios.post('https://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
                             nome: this.cliente.nome
                         })
                         .then(function(r) {
@@ -516,7 +516,7 @@
             methods: {
                 editarCliente() {
                     if (confirm("Tem certeza?"))
-                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
+                        axios.put('https://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
                             id: this.$root.$data.cliente.id, 
                             nome: this.cliente.nome
                         })
@@ -558,7 +558,7 @@
                             bool = [false, true]
                         }
 
-                        axios.post('http://biblioteca-apirest-digivox.herokuapp.com/api/info', {
+                        axios.post('https://biblioteca-apirest-digivox.herokuapp.com/api/info', {
                             livro: { id: this.selectedLivro.id },
                             cliente: { id: this.selectedCliente.id },
                             alugado: bool[0],
@@ -604,7 +604,7 @@
                         if (confirm("Tem certeza?"))
                         var d = new Date()
                         var data_aux = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + ('0' + d.getDate()).slice(-2)
-                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/info', {
+                        axios.put('https://biblioteca-apirest-digivox.herokuapp.com/api/info', {
                             id: this.selectedInfo.id, 
                             livro: {
                                 id: this.selectedInfo.livro.id
@@ -655,7 +655,7 @@
                         if (confirm("Tem certeza?"))
                         var d = new Date()
                         var data_aux = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + ('0' + d.getDate()).slice(-2)
-                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/info', {
+                        axios.put('https://biblioteca-apirest-digivox.herokuapp.com/api/info', {
                             id: this.selectedInfo.id, 
                             livro: {
                                 id: this.selectedInfo.livro.id
@@ -728,7 +728,7 @@
 
             methods: {
                 getLivros() {
-                    var url = 'http://biblioteca-apirest-digivox.herokuapp.com/api/livros';
+                    var url = 'https://biblioteca-apirest-digivox.herokuapp.com/api/livros';
                     var vm = this;
                     axios.get(url).then(function(r) {
                         vm.livros = r.data;
@@ -736,7 +736,7 @@
                 },
 
                 getClientes() {
-                    var url = 'http://biblioteca-apirest-digivox.herokuapp.com/api/clientes';
+                    var url = 'https://biblioteca-apirest-digivox.herokuapp.com/api/clientes';
                     var vm = this;
                     axios.get(url).then(function(r) {
                         vm.clientes = r.data;
@@ -744,7 +744,7 @@
                 },
 
                 getInfo() {
-                    var url = 'http://biblioteca-apirest-digivox.herokuapp.com/api/info';
+                    var url = 'https://biblioteca-apirest-digivox.herokuapp.com/api/info';
                     var vm = this;
                     axios.get(url).then(function(r) {
                         vm.info = r.data;
