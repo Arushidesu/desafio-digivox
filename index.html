@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/70c70667a7.js" crossorigin="anonymous"></script>
+    <title>Livraria Digivox</title>
+</head>
+<body>
+    <div id="app">
+        <div class="container text-center">
+            <div class="col-12">
+                <h1 class="mt-3 ml-4">// Aluguel de Livros //</h1><hr>
+                <div class="btn-group mt-3 ml-3" role="group" aria-label="Basic example">
+                    <router-link to="/"><button  @click="getInfo()" type="button" class="btn btn-lg btn-info"><i class="fas fa-home"></i> Início</button></router-link>
+                    <router-link to="/livros"><button  @click="getLivros()" type="button" class="btn btn-lg btn-warning mx-1"><i class="fas fa-book"></i> Livros</button></router-link>
+                    <router-link to="/clientes"><button @click="getClientes()" type="button" class="btn btn-lg btn-primary"><i class="fas fa-user"></i> Clientes</button></router-link>
+                    <router-link to="/info"><button type="button" class="btn btn-lg btn-success mx-1"><i class="fas fa-money-bill-wave"></i> Alugar</button></router-link>
+                    <router-link to="/cancelar"><button type="button" class="btn btn-lg btn-danger mr-1"><i class="fas fa-times"></i> Cancelar</button></router-link>
+                    <router-link to="/devolver"><button type="button" class="btn btn-lg btn-primary"><i class="fas fa-arrow-down"></i> Devolver</button></router-link>
+                </div>
+            </div>
+            <router-view></router-view>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@3.1.3/dist/vue-router.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <template id="listalivros">
+        <div>
+            <button @click="showModalInsert" class="btn btn-success float-left my-3"><i class="fas fa-plus"></i> Novo registro</button>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Título</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="livro in this.$root.$data.livros">
+                        <td>{{ livro.titulo }}</td>
+                        <td>
+                            <div class="btn-group-sm" role="group" aria-label="Basic example">
+                              <button @click="showModalEdit(livro.id)" type="button" class="btn btn-primary mr-1"><i class="fas fa-pencil-alt"></i></button>
+                              <button @click="deletarLivro(livro.id)" type="button" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <modalnewlivro ref="modalinsertlivro"></modalnewlivro>
+            <modaleditlivro ref="modaleditlivro"></modaleditlivro>
+        </div>
+    </template>
+
+    <template id="listaclientes">
+        <div>
+            <button @click="showModalInsert()" class="btn btn-success float-left my-3"><i class="fas fa-plus"></i> Novo registro</button>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="cliente in this.$root.$data.clientes">
+                        <td>{{ cliente.nome }}</td>
+                        <td>
+                            <div class="btn-group-sm" role="group" aria-label="Basic example">
+                              <button @click="showModalEdit(cliente.id)" type="button" class="btn btn-primary mr-1"><i class="fas fa-pencil-alt"></i></button>
+                              <button @click="deletarCliente(cliente.id)" type="button" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <modalnewcliente ref="modalinsertcliente"></modalnewcliente>
+            <modaleditcliente ref="modaleditcliente"></modaleditcliente>
+        </div>
+    </template>
+
+    <template id="modalnewlivro">
+        <!-- Modal -->
+        <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Inserir novo livro</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group text-left">
+                        <label for="inputTitulo">Título</label>
+                        <input type="text" class="form-control" id="inputTitulo" placeholder="Digite o título do livro" v-model="livro.titulo">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                  <button @click.prevent="salvarLivro" type="button" class="btn btn-primary">Salvar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="modaleditlivro">
+        <!-- Modal -->
+        <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Editar livro</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group text-left">
+                        <label for="inputTitulo">Título</label>
+                        <input type="text" class="form-control" id="inputTitulo" placeholder="Digite o título do livro" v-model="livro.titulo">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                  <button @click.prevent="editarLivro" type="button" class="btn btn-primary">Salvar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="modalnewcliente">
+        <!-- Modal -->
+        <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Inserir novo cliente</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group text-left">
+                        <label for="inputTitulo">Nome</label>
+                        <input type="text" class="form-control" id="inputNome" placeholder="Digite o nome do cliente" v-model="cliente.nome">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                  <button @click.prevent="salvarCliente" type="button" class="btn btn-primary">Salvar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="modaleditcliente">
+        <!-- Modal -->
+        <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Editar cliente</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group text-left">
+                        <label for="inputTitulo">Nome</label>
+                        <input type="text" class="form-control" id="inputNome" placeholder="Digite o nome do cliente"v-model="cliente.nome">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                  <button @click.prevent="editarCliente" type="button" class="btn btn-primary">Salvar</button>
+                </div>
+              </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="info">
+        <div class="text-left my-3">
+            <select v-model="selectedLivro" name="livros" id="selectlivroalugar" class="custom-select">
+                <option selected>Selecione o livro</option>
+                <option v-for="livro in $options.filters.free(this.$root.$data.livros, this.$root.$data.info)" :value="{ id: livro.id, titulo: livro.titulo }">{{ livro.titulo }}</option>
+            </select>
+            <small class="form-text text-muted">Livros já alugados ou reservados não aparecem na lista</small>
+            <select v-model="selectedCliente" name="clientes" id="selectcliente" class="custom-select my-3">
+                <option selected>Selecione o cliente</option>
+                <option v-for="cliente in this.$root.$data.clientes" :value="{ id: cliente.id, nome: cliente.nome }">{{ cliente.nome }}</option>
+            </select>
+            <input v-model="data" class="form-control" type="date" id="example-date-input">
+            <small class="form-text text-muted">Preencha apenas se for reservar</small>
+            <button @click="alugar" class="btn btn-success mt-3"><i class="fas fa-paper-plane"></i> Enviar</button>
+        </div>
+    </template>
+
+    <template id="cancelar">
+        <div class="text-left my-3">
+            <select v-model="selectedInfo" name="livros" id="selectlivrocancelar" class="custom-select">
+                <option selected>Selecione o livro</option>
+                <option v-for="info in $options.filters.cancelados(this.$root.$data.info)" :value="{ id: info.id, livro: { id: info.livro.id }, cliente: { id: info.cliente.id }, data: info.data_reserva }">{{ info.livro.titulo }}</option>
+            </select>
+            <button @click="cancelar" class="btn btn-success mt-3"><i class="fas fa-paper-plane"></i> Enviar</button>
+        </div>
+    </template>
+
+    <template id="devolver">
+        <div class="text-left my-3">
+            <select v-model="selectedInfo" name="livros" id="selectlivrodevolver" class="custom-select">
+                <option selected>Selecione o livro</option>
+                <option v-for="info in $options.filters.devolvidos(this.$root.$data.info)" :value="{ id:info.id, livro: { id: info.livro.id }, cliente: { id: info.cliente.id }, data:info.data_reserva }">{{ info.livro.titulo }}</option>
+            </select>
+            <button @click="devolver" class="btn btn-success mt-3"><i class="fas fa-paper-plane"></i> Enviar</button>
+        </div>
+    </template>
+
+    <template id="inicio">
+        <div class="mt-5 text-left">
+            <div class="row mb-5">
+                <div class="col-sm-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h1 class="card-title">{{ this.$root.$data.livros.length }}</h1>
+                      <p class="card-text">livros cadastrados</p>
+                      <router-link to="/livros"><a href="#" class="btn btn-primary">Ver lista completa</a></router-link>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h1 class="card-title">{{ this.$root.$data.clientes.length }}</h1>
+                      <p class="card-text">clientes cadastrados</p>
+                      <router-link to="/clientes"><a href="#" class="btn btn-primary">Ver clientela</a></router-link>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h1 class="card-title">{{ this.$root.$data.info | devolvidos | len }}</h1>
+                      <p class="card-text">devoluções realizadas</p>
+                      <router-link to="/info"><a href="#" class="btn btn-primary">Alugue ou reserve</a></router-link>
+                    </div>
+                  </div>
+                </div>
+            </div>
+            <div class="row text-center">
+                <div class="col-sm-12 col-md-6">
+                    <h3 style="margin-bottom: 25px;">Próximas devoluções</h3>
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th scope="col">Livro</th>
+                          <th scope="col">Cliente</th>
+                          <th scope="col">Data</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="i in $options.filters.devolucoes(this.$root.$data.info)">
+                          <td>{{ i.livro.titulo }}</td>
+                          <td>{{ i.cliente.nome }}</td>
+                          <td>{{ i.data_reserva | datafilter }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <h3 style="margin-bottom: 25px;">Alugados na semana</h3>
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th scope="col">Livro</th>
+                          <th scope="col">Cliente</th>
+                          <th scope="col">Data</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="i in $options.filters.alugados(this.$root.$data.info)">
+                            <td>{{ i.livro.titulo }}</td>
+                            <td>{{ i.cliente.nome }}</td>
+                            <td>{{ i.data_reserva | datafilter }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+            <router-view></router-view>
+        </div>
+    </template>
+    
+    <script>
+        var Inicio = Vue.component('inicio', {
+            template: "#inicio",
+            filters: {
+                devolucoes(info) {
+                    var dataatual = new Date()
+                    var semana = new Date()
+                    semana.setDate(dataatual.getDate() + 7)
+                    return info.filter( i => {
+                        return (i.reservado === true && Date.parse(i.data_reserva) < semana)
+                    }) 
+                },
+                alugados(info) {
+                    var dataatual = new Date()
+                    var semana = new Date()
+                    semana.setDate(dataatual.getDate() - 7)
+                    return info.filter( i => {
+                        return (i.alugado === true && Date.parse(i.data_reserva) > semana && Date.parse(i.data_reserva) <= dataatual)
+                    })
+                },
+                datafilter(data) {
+                    datasplit = data.split('-')
+                    return datasplit[2] + '/' + datasplit[1] + '/' + datasplit[0]
+                },
+                devolvidos(info) {
+                    return info.filter( i => {
+                        return (i.devolvido === true)
+                    })
+                },
+                len(info) {
+                    return info.length
+                }
+            }
+        })
+
+        var Devolver = Vue.component('devolver', {
+            template: '#devolver',
+            data: function() {
+                return {
+                    selectedInfo: 'Selecione o livro'
+                }
+            },
+            methods: {
+                devolver() {
+                    if ($('#selectlivrodevolver').val() === 'Selecione o livro') {
+                        alert("Selecione o livro!")
+                    }
+                    else {
+                        if (confirm("Tem certeza?"))
+                        var d = new Date()
+                        var data_aux = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + ('0' + d.getDate()).slice(-2)
+                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/info', {
+                            id: this.selectedInfo.id, 
+                            livro: {
+                                id: this.selectedInfo.livro.id
+                            },
+                            cliente: {
+                                id: this.selectedInfo.cliente.id
+                            },
+                            alugado: false,
+                            reservado: false,
+                            devolvido: true,
+                            cancelado: false,
+                            data_reserva: this.selectedInfo.data,
+                            data_devolucao: data_aux
+                        })
+                        .then(function(r) {
+                            alert("Devolvido com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function(e) {
+                            alert("Ocorreu um erro! :(");
+                        })
+                    }
+                }
+            },
+            filters: {
+                devolvidos(info) {
+                    var dataatual = new Date()
+                    return info.filter( i => {
+                        return ((i.reservado === true && Date.parse(i.data_reserva) > dataatual) || i.alugado === true)
+                    }) 
+                }
+            }
+        })
+
+        var Cancelar = Vue.component('cancelar', {
+            template: '#cancelar',
+            data: function() {
+                return {
+                    selectedInfo: 'Selecione o livro'
+                }
+            },
+            methods: {
+                cancelar() {
+                    if ($('#selectlivrocancelar').val() === 'Selecione o livro') {
+                        alert("Selecione o livro!")
+                    }
+                    else {
+                        if (confirm("Tem certeza?"))
+                        var d = new Date()
+                        var data_aux = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + ('0' + d.getDate()).slice(-2)
+                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/info', {
+                            id: this.selectedInfo.id, 
+                            livro: {
+                                id: this.selectedInfo.livro.id
+                            },
+                            cliente: {
+                                id: this.selectedInfo.cliente.id
+                            },
+                            alugado: false,
+                            reservado: false,
+                            devolvido: false,
+                            cancelado: true,
+                            data_reserva: this.selectedInfo.data,
+                            data_cancelamento: data_aux
+                        })
+                        .then(function(r) {
+                            alert("Cancelado com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function(e) {
+                            alert("Ocorreu um erro! :(");
+                        })
+                    }
+                }
+            },
+            filters: {
+                cancelados(info) {
+                    return info.filter( i => {
+                        return (i.reservado === true)
+                    }) 
+                }
+            }
+        })
+
+        var Info = Vue.component('info', {
+            template: '#info',
+            data: function() {
+                return {
+                    selectedLivro: 'Selecione o livro',
+                    selectedCliente: 'Selecione o cliente',
+                    data: ''
+                }
+            },
+            methods: {
+                alugar() {
+                    if ($('#selectlivroalugar').val() === 'Selecione o livro' || $('#selectcliente').val() === 'Selecione o cliente') {
+                        alert("Preencha as informações!")
+                    }
+                    else {
+                        var d = new Date()
+                        var data_aux
+                        var bool = [true, false]
+                        if (this.data === '') {
+                            data_aux = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + ('0' + d.getDate()).slice(-2)
+                        }
+                        else {
+                            data_aux = this.data
+                            bool = [false, true]
+                        }
+
+                        axios.post('http://biblioteca-apirest-digivox.herokuapp.com/api/info', {
+                            livro: { id: this.selectedLivro.id },
+                            cliente: { id: this.selectedCliente.id },
+                            alugado: bool[0],
+                            reservado: bool[1],
+                            devolvido: false,
+                            cancelado: false,
+                            data_reserva: data_aux
+                        })
+                        .then(function(r) {
+                            alert("Inserido com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function (e) {
+                            alert("Ocorreu algum erro! :(");
+                        })
+                    }
+                }
+            },
+            filters: {
+                free: function(values, info) {
+                    return values.filter( v => {
+                        return info
+                            .filter( i => (i.alugado === true) || (i.reservado === true))
+                            .findIndex( i => i.livro.titulo === v.titulo ) === -1
+                    }) 
+                }
+            }
+        })
+
+        var ListaLivros = Vue.component('listalivros', {
+            template: '#listalivros',
+            methods: {
+                deletarLivro(id) {
+                    if (confirm("Tem certeza?"))
+                        axios.delete('http://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
+                            data: { id }
+                        })
+                        .then(function(r) {
+                            alert("Deletado com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function(e) {
+                            alert("Ocorreu um erro! :(");
+                        })
+
+                },
+                showModalInsert() {
+                    let element = this.$refs.modalinsertlivro.$el
+                    $(element).modal('show')
+                },
+                showModalEdit(id) {
+                    this.$root.$data.livro.id = id
+                    let element = this.$refs.modaleditlivro.$el
+                    $(element).modal('show')
+                }
+            }
+        });
+
+
+        var modalNewLivro = Vue.component('modalnewlivro', {
+            template: '#modalnewlivro',
+            data: function() {
+                return {
+                    livro: {
+                        titulo: ''
+                    }
+                }
+            },
+            methods: {
+                salvarLivro() {
+                    if ($('#inputTitulo').val() === '') {
+                        alert("O título está vazio!")
+                    }
+                    else {
+                        axios.post('http://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
+                            titulo: this.livro.titulo
+                        })
+                        .then(function(r) {
+                            alert("Inserido com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function (e) {
+                            alert("Ocorreu algum erro! :(");
+                        })
+                    }
+                }
+            }
+        });
+
+        var modalEditLivro = Vue.component('modaleditlivro', {
+            template: '#modaleditlivro',
+            data: function() {
+                return {
+                    livro: {
+                        id: '',
+                        titulo: ''
+                    } 
+                }
+            },
+            methods: {
+                editarLivro() {
+                    if (confirm("Tem certeza?"))
+                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/livro', {
+                            id: this.$root.$data.livro.id, 
+                            titulo: this.livro.titulo
+                        })
+                        .then(function(r) {
+                            alert("Atualizado com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function(e) {
+                            alert("Ocorreu um erro! :(");
+                        })
+                }
+            }
+        })
+
+        var ListaClientes = Vue.component('listaclientes', {
+            template: '#listaclientes',
+            methods: {
+                deletarCliente(id) {
+                    if (confirm("Tem certeza?"))
+                        axios.delete('http://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
+                            data: { id }
+                        })
+                        .then(function(r) {
+                            alert("Deletado com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function(e) {
+                            alert("Ocorreu um erro! :(");
+                        })
+                },
+                showModalInsert() {
+                    let element = this.$refs.modalinsertcliente.$el
+                    $(element).modal('show')
+                },
+                showModalEdit(id) {
+                    this.$root.$data.cliente.id = id
+                    let element = this.$refs.modaleditcliente.$el
+                    $(element).modal('show')
+                }
+            }
+        });
+
+        var modalNewCliente = Vue.component('modalnewcliente', {
+            template: '#modalnewcliente',
+            data: function() {
+                return {
+                    cliente: {
+                        nome: ''
+                    }
+                }
+            },
+            methods: {
+                salvarCliente() {
+                    if ($('#inputNome').val() === '') {
+                        alert("O nome está vazio!")
+                    }
+                    else {
+                        axios.post('http://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
+                            nome: this.cliente.nome
+                        })
+                        .then(function(r) {
+                            alert("Inserido com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function (e) {
+                            alert("Ocorreu algum erro! :(");
+                        })
+                    }
+                }
+            }
+        });
+
+        var modalEditCliente = Vue.component('modaleditcliente', {
+            template: '#modaleditcliente',
+            data: function() {
+                return {
+                    cliente: {
+                        id: '',
+                        nome: ''
+                    } 
+                }
+            },
+            methods: {
+                editarCliente() {
+                    if (confirm("Tem certeza?"))
+                        axios.put('http://biblioteca-apirest-digivox.herokuapp.com/api/cliente', {
+                            id: this.$root.$data.cliente.id, 
+                            nome: this.cliente.nome
+                        })
+                        .then(function(r) {
+                            alert("Atualizado com sucesso!");
+                            location.reload();
+                        })
+                        .catch(function(e) {
+                            alert("Ocorreu um erro! :(");
+                        })
+                }
+            }
+        });
+
+        var router = new VueRouter({
+            routes: [
+                { path: '/', component: Inicio },
+                { path: '/livros', component: ListaLivros },
+                { path: '/clientes', component: ListaClientes },
+                { path: '/info', component: Info },
+                { path: '/cancelar', component: Cancelar },
+                { path: '/devolver', component: Devolver }
+            ]
+        });
+
+        var app = new Vue({
+            el: "#app",
+
+            router,
+
+            mounted() {
+                this.getLivros();
+                this.getClientes();
+                this.getInfo();
+            },
+
+            data: {
+                livro: {
+                    id: '',
+                    titulo: ''
+                },
+                cliente: {
+                    id: '',
+                    nome: ''
+                },
+                info: [],
+                livros: [],
+                clientes: []            
+            },
+
+            methods: {
+                getLivros() {
+                    var url = 'http://biblioteca-apirest-digivox.herokuapp.com/api/livros';
+                    var vm = this;
+                    axios.get(url).then(function(r) {
+                        vm.livros = r.data;
+                    });
+                },
+
+                getClientes() {
+                    var url = 'http://biblioteca-apirest-digivox.herokuapp.com/api/clientes';
+                    var vm = this;
+                    axios.get(url).then(function(r) {
+                        vm.clientes = r.data;
+                    });
+                },
+
+                getInfo() {
+                    var url = 'http://biblioteca-apirest-digivox.herokuapp.com/api/info';
+                    var vm = this;
+                    axios.get(url).then(function(r) {
+                        vm.info = r.data;
+                    });
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
